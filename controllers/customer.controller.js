@@ -2,6 +2,8 @@ const {
   getCustomers,
   getCustomersExcel,
   searchCustomers,
+  emailVerify,
+  otpVerify,
 } = require("../services/customer.service");
 
 class CustomerController {
@@ -40,6 +42,26 @@ class CustomerController {
 
       await workbook.xlsx.write(res);
       return res.end();
+    } catch (err) {
+      return res.status(err.status || 500).json({ message: err.message });
+    }
+  }
+
+  async emailVerify(req, res, next) {
+    try {
+      const { email } = req.body;
+      const response = await emailVerify(email);
+      return res.status(201).json(response);
+    } catch (err) {
+      return res.status(err.status || 500).json({ message: err.message });
+    }
+  }
+
+  async otpVerify(req, res, next) {
+    try {
+      const { otp, user_id } = req.body;
+      const response = await otpVerify(otp, user_id);
+      return res.status(201).json(response);
     } catch (err) {
       return res.status(err.status || 500).json({ message: err.message });
     }

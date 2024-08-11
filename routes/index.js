@@ -7,6 +7,8 @@ const UserRoutes = require("../routes/user.route");
 const ImageRoutes = require("../routes/image.route");
 const ThemePreviewRoutes = require("../routes/theme_preview.route");
 const CustomerRoutes = require("../routes/customer.route");
+const paymentRouter = require("../routes/payment.route");
+const searchRouter = require("../routes/search.route");
 
 router.use("/category", CategoryRoutes);
 router.use("/subcategory", SubCategoryRoutes);
@@ -16,5 +18,7 @@ router.use("/user", UserRoutes);
 router.use("/image", ImageRoutes);
 router.use("/theme-preview", ThemePreviewRoutes);
 router.use("/customers", CustomerRoutes);
+router.use("/payment", paymentRouter);
+router.use("/search", searchRouter);
 
 module.exports = router;
