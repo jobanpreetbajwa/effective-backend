@@ -1,3 +1,7 @@
+const UserModel = require("../model/user.model");
+const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET;
+console.log(secretKey,"secret key")
 const {
   getCustomers,
   getCustomersExcel,
@@ -8,7 +12,9 @@ const {
   addToWishlist,
   getWishlist,
   removeFromWishlist,
+  getUserDetails,
 } = require("../services/customer.service");
+
 
 class CustomerController {
   async getCustomers(req, res, next) {
@@ -83,9 +89,20 @@ class CustomerController {
 
   async addToWishlist(req, res, next) {
     try {
-      const {user_id, productId } = req.body;
-      const response = await addToWishlist(user_id,productId);
-      return res.status(201).json(response);
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) return res.status(401).json({ message: 'No token provided' });
+
+      jwt.verify(token, secretKey, async (err, decoded) => {
+        if (err) return res.status(403).json({ message: 'Failed to authenticate token' });
+
+        const user = await UserModel.findById(decoded.user_id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const { productId } = req.body;
+        const response = await addToWishlist(user._id, productId);
+        return res.status(201).json(response);
+      });
     } catch (err) {
       return res.status(err.status || 500).json({ message: err.message });
     }
@@ -93,9 +110,18 @@ class CustomerController {
 
   async getWishlist(req, res, next) {
     try {
-      const { user_id } = req.params;
-      const response = await getWishlist(user_id);
-      return res.status(201).json(response);
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) return res.status(401).json({ message: 'No token provided' });
+
+      jwt.verify(token, secretKey, async (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Failed to authenticate token', error: err.message });
+        }
+        const response = await getWishlist(decoded.user_id);
+        return res.status(201).json(response);
+      });
+  
     } catch (err) {
       return res.status(err.status || 500).json({ message: err.message });
     }
@@ -103,11 +129,44 @@ class CustomerController {
 
   async removeFromWishlist(req, res, next) {
     try {
-      const { user_id, productId } = req.body;
-      const response = await removeFromWishlist(user_id, productId);
-      return res.status(201).json(response);
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) return res.status(401).json({ message: 'No token provided' });
+
+      jwt.verify(token, secretKey, async (err, decoded) => {
+        if (err) return res.status(403).json({ message: 'Failed to authenticate token' });
+
+        const user = await UserModel.findById(decoded.user_id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const { productId } = req.body;
+        const response = await removeFromWishlist(user._id, productId);
+        return res.status(201).json(response);
+      });
     } catch (err) {
       return res.status(err.status || 500).json({ message: err.message });
+    }
+  }
+
+  async getCustomer(req, res, next) {
+    try {
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) return res.status(401).json({ message: 'No token provided' });
+
+      jwt.verify(token, secretKey, async (err, decoded) => {
+        if (err) return res.status(403).json({ message: 'Failed to authenticate token' });
+
+        const user = await getUserDetails(decoded.user_id);
+
+        return res.status(201).json(user);
+      });
+    } catch (err) {
+      console.log(err);
+      return res.status(err.status || 500).json({ message:{
+        success:false,
+        message: err.message,
+      } });
     }
   }
 }

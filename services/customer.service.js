@@ -2,8 +2,10 @@ const OrderModel = require("../model/order.model");
 const UserModel = require("../model/user.model");
 const VisitorsModel = require("../model/vistiorsAnalytics.model");
 const Excel = require("exceljs");
+const jwt = require("jsonwebtoken");
 const ErrorHandler = require("../utils/errorHandler");
 const OTP = require("../model/otp_verification.model");
+const secretKey = process.env.JWT_SECRET;
 
 async function getCustomers(type, pageNumber, pageSize) {
   let customers = await OrderModel.aggregate([
@@ -215,45 +217,54 @@ async function searchCustomers(searchQuery, type, pageNumber, pageSize) {
 }
 
 async function emailVerify(email) {
-
   const otp = Math.floor(100000 + Math.random() * 900000);
-  // send email verification link with otp
   const user = await UserModel.findOne({ user_email: email });
+
+  let userId;
   if (!user) {
-    // create new user
+    // Create new user
     const newUser = new UserModel({
       user_name: email,
       user_email: email,
-    }); 
+    });
     await newUser.save();
+    userId = newUser._id;
+  } else {
+    userId = user._id;
+  }
 
-    // create otp for this new User
+  // Check if user exists in OTP table
+  let userOtp = await OTP.findOne({ user_id: userId });
+  if (userOtp) {
+    userOtp.otp = otp;
+    await userOtp.save();
+  } else {
+    // Create OTP for the user
     const otpData = new OTP({
-      user_id: newUser._id,
+      user_id: userId,
       otp: otp,
     });
     await otpData.save();
-    return { message: "Email verification link sent", otp: otp,user_id: newUser._id };
   }
-  else {
-    // create otp for existing User
-    const otpData = new OTP({
-      user_id: user._id,
-      otp: otp,
-    });
-    await otpData.save();
-    return { message: "Email verification link sent", otp: otp,user_id: user._id };
-  }
-  
+
+  return { message: "Email verification link sent", otp: otp, user_id: userId };
 }
 
 async function otpVerify(otp, user_id) {
+  const user = await UserModel.findById(user_id);
+  if (!user) {
+    throw new ErrorHandler("User not found", 404);
+  }
   const otpData = await OTP.findOne({ otp, user_id });
   if (!otpData) {
-    throw new ErrorHandler("Invalid OTP", 400);
+    throw new ErrorHandler("Invalid OTP", 401);
   }
   await OTP.deleteOne({ otp, user_id });
-  return { message: "Email verified" };
+
+  // Generate JWT token
+  const token = jwt.sign({ user_id, email: user.email }, secretKey, { expiresIn: '24h' });
+
+  return { message: "Email verified", token };
 }
 
 async function resendOtp(user_id) {
@@ -343,6 +354,20 @@ async function removeFromWishlist(user_id,productId) {
   }
 }
 
+async function getUserDetails(user_id) {
+  // get user details
+    const user = await UserModel.findOne({ _id: user_id });
+    if (!user) {
+      throw new ErrorHandler("User not found", 404);
+    }
+    return { message:{
+      success:true,
+      message:"User details found",
+      user }};
+  }
+
+
+
 module.exports = {
   getCustomers,
   getCustomersExcel,
@@ -353,4 +378,5 @@ module.exports = {
   addToWishlist,
   getWishlist,
   removeFromWishlist,
+  getUserDetails,
 };

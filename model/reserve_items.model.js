@@ -23,7 +23,8 @@ const reserveItemsSchema = mongoose.Schema({
     },
     expiresAt: {
         type: Date,
-        default: Date.now() + 1000 * 60 * 60 * 24,
+        default: Date.now() + 1000 * 60 * 60 * 24, // 24 hours from now
+        index: { expires: '1d' } // TTL index to expire documents after 1 day
     },
     });
 
