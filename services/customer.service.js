@@ -256,10 +256,101 @@ async function otpVerify(otp, user_id) {
   return { message: "Email verified" };
 }
 
+async function resendOtp(user_id) {
+  try{
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const user = await OTP.findOne({ user_id: user_id });
+    if(!user){
+      throw new ErrorHandler("User not found", 404);
+    }
+    user.otp = otp;
+    await user.save();
+  
+    return { message: "OTP sent",otp: otp };  
+  }
+  catch(err){
+    throw new ErrorHandler("Fail to find user", err.status);
+}
+}
+
+async function addToWishlist(user_id,productId) {
+  // add product to wishlist
+  try{
+    const user = await UserModel.findOne({
+      _id: user_id,
+    });
+    if (!user) {
+      return { message: "User not found" };
+    }
+    if (user.wishlist.includes(productId)) {
+      return { message: "Item already in wishlist" };
+    }
+    user.wishlist.push(productId);
+    await user.save();
+    return { message: "Added to wishlist" };
+  }
+  catch(err){
+    throw new ErrorHandler("Fail to add item to wishlist", err.status);
+  }
+  
+}
+
+async function getWishlist(user_id) {
+  // get wishlist items
+  try{
+    const user
+      = await UserModel.findOne({
+        _id: user_id,
+      }).populate({
+        path: 'wishlist',
+        populate: {
+          path: 'img_ids',
+          model: 'Image',
+        }
+      });
+    if (!user) {
+      throw new ErrorHandler("User not found", 404);
+    }
+    let message = "";
+    if(user.wishlist.length > 0){
+      message = "Wishlist items found";
+    }
+    else{
+      message = "Wishlist is empty";
+    }
+    return { wishlist: user.wishlist , message };
+  }
+  catch(err){
+    throw new ErrorHandler("Fail to get wishlist", err.status);
+  }
+}
+
+async function removeFromWishlist(user_id,productId) {
+  // remove product from wishlist
+  try{
+    const user = await UserModel.findOne({
+      _id: user_id,
+    });
+    if (!user) {
+      return { message: "User not found" };
+    }
+    user.wishlist = user.wishlist.filter((item) => item.toString() !== productId);
+    await user.save();
+    return { message: "Removed from wishlist",productId };
+  }
+  catch(err){
+    throw new ErrorHandler("Fail to remove item from wishlist", err.status);
+  }
+}
+
 module.exports = {
   getCustomers,
   getCustomersExcel,
   searchCustomers,
   emailVerify,
   otpVerify,
+  resendOtp,
+  addToWishlist,
+  getWishlist,
+  removeFromWishlist,
 };
