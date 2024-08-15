@@ -15,6 +15,7 @@ const {
   editBulkProducts,
   getProductsExcel,
   getProductsSampleExcel,
+  getProductsByFilters,
 } = require("../services/product.service");
 const ProductCategoryModel = require("../model/product_category.model");
 const SubCategoryModel = require("../model/subcategory.model");
@@ -351,6 +352,15 @@ class ProductController {
       return res.end();
     } catch (err) {
       return res.status(err.status || 500).json({ message: err.message });
+    }
+  }
+  async getProductsByFilters(req, res) {
+    try {
+      const { filters } = req.body;
+      let products = await getProductsByFilters(filters);
+      res.status(200).json(products);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
     }
   }
 }

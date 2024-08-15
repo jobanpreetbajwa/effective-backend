@@ -11,6 +11,7 @@ const { default: mongoose } = require("mongoose");
 const { getProductsByCategory } = require("../services/category.service");
 
 const Excel = require("exceljs");
+const productCategory = require("../model/product_category.model");
 
 async function addProduct(productDetails) {
   let {
@@ -537,6 +538,24 @@ async function getProductsSampleExcel() {
   return workbook;
 }
 
+async function getProductsByFilters(filters) {
+  try{
+    console.log(filters)
+    const associatedProducts = await productCategory.find({
+      subCategory: { $in: filters }
+    }).lean();
+
+    const products = await ProductModel.find({
+      _id: { $in: associatedProducts.map(({ product }) => product) }
+    }).populate('img_ids').lean();
+
+    return products;
+    }
+    catch(err){
+      throw new ErrorHandler(err.message, 400);
+    }
+}
+
 module.exports = {
   addProduct,
   getProductById,
@@ -555,4 +574,5 @@ module.exports = {
   editBulkProducts,
   getProductsExcel,
   getProductsSampleExcel,
+  getProductsByFilters,
 };

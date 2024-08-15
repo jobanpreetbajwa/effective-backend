@@ -28,4 +28,5 @@ router.post("/add-bulk/:category_id", productController.addBulkProducts);
 router.patch("/edit-bulk", productController.editBulkProducts);
 router.get("/product-excel/:category_id", productController.getProductsExcel);
 router.get("/excel/sample", productController.getProductsSampleExcel);
+router.post("/filters",productController.getProductsByFilters)
 module.exports = router;
