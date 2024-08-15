@@ -335,9 +335,10 @@ async function orderHistory(user_id) {
     //     !(item?.productId.deletedAt && [0, 2, 4, 5].includes(order.status))
     // );
     order.items.map((item) => {
-      const { quantity, price } = item;
-      item.productId = item?.productId?._id || undefined;
-      totalAmount += price * quantity;
+
+      const { quantity} = item;
+      totalAmount += item?.productId?.mrp_price * quantity;
+      item.productId = item?.productId?._id || undefined;  
     });
     return { ...order, totalAmount };
   });
@@ -349,7 +350,7 @@ async function orderDetails(user_id, order_id) {
   if (!user_id) {
     throw new ErrorHandler("CREDINTIALS_MISSING", 400);
   }
-  const order = await OrderModel.findById(order_id)
+  const order = await OrderModel.findOne({orderId:order_id})
     .lean()
     .populate("items.productId")
     .populate({
