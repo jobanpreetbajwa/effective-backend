@@ -239,17 +239,22 @@ class UserController {
     try {
       const { user_id } = req.params;
       const {
-        date,
-        items,
         deliveryAddress,
         note,
-        paymentMode,
         name,
         phoneNumber,
         city,
         state,
         pin,
-      } = req.body;
+      } = req.body.orderDetails;
+      const cartItems = req.body.cartItems;
+      const items = cartItems.map(item => ({
+          productId: item.product_id,
+          quantity: item.quantity
+      }));
+      const date = new Date();
+      const paymentMode = 1;
+    
       const place_order = await placeOrder(
         user_id,
         date,
@@ -263,9 +268,12 @@ class UserController {
         state,
         pin
       );
-      res.status(200).json(place_order);
+      return res.status(200).json(place_order);
     } catch (err) {
-      return res.status(err.status || 500).json({ message: err.message });
+      return res.status(err.status || 500).json({ message:{
+        success: false,
+        message: err.message
+      } });
     }
   }
 

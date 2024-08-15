@@ -3,8 +3,8 @@ const checkProductAvailability = require("../services/payment.service").checkPro
 class paymentController {
   async checkAndMakeReservation(req, res) {
     try {
-      let { cartItems } = req.body;
-      let products = await checkAndMakeReservation(cartItems);
+      let { cartItems,user_id} = req.body;
+      let products = await checkAndMakeReservation(cartItems,user_id);
       res.status(200).json(products);
     } catch (err) {
       res.status(400).json({ message: err.message });
