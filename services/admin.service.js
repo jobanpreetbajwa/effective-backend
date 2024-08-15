@@ -212,15 +212,16 @@ async function orderPriceCalculate(orders) {
   for (const order of orders) {
     let totalAmount = 0;
     for (const item of order.items) {
-      const { price, quantity } = item;
+      const { productId, quantity } = item;
+      const price = productId.mrp_price;
 
       if (price === 0 || quantity === 0) {
-        totalAmount = 0;
-        break;
+        continue;
+      } else {
+        totalAmount += price * quantity;
       }
-
-      totalAmount += price * quantity;
     }
+
     order.totalAmount = parseFloat(totalAmount.toFixed(2));
   }
 }

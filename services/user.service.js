@@ -259,8 +259,7 @@ async function placeOrder(
     throw new ErrorHandler("CREDINTIALS_MISSING", 400);
   }
   const order_id = await generateOrderId.generateOrderId();
-
-  let order = new OrderModel({
+let order = new OrderModel({
     orderId: order_id,
     customerId: user_id,
     date,
@@ -308,7 +307,13 @@ async function placeOrder(
       rating: rating?.[0] ? rating?.[0].rating : 0,
     };
   });
-  return { ...order, items };
+  return { 
+    message: {
+      success: true,
+      message: "Order placed successfully",
+      order: { ...order, items }
+    }
+  };
 }
 
 async function orderHistory(user_id) {

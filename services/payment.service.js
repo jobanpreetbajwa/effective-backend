@@ -1,6 +1,6 @@
 const ReserveItems = require("../model/reserve_items.model");
 const Product = require("../model/product.model");
-async function checkAndMakeReservation(cartItems) {
+async function checkAndMakeReservation(cartItems,user_id) {
   try {
     // Check if any of the cart items are already reserved
     for (let item of cartItems) {
@@ -29,7 +29,7 @@ async function checkAndMakeReservation(cartItems) {
         let reservation = new ReserveItems({
           product_id: item.product_id,
           quantity: item.quantity,
-          user_id: item.user_id,
+          user_id: user_id,
         });
         await reservation.save();
       }
