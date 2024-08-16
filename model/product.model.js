@@ -15,7 +15,8 @@ const productSchema = new Schema({
   //   default: null,
   // },
   size: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: "SizeChart",
   },
   color: {
     type: String,

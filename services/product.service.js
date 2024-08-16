@@ -12,8 +12,11 @@ const { getProductsByCategory } = require("../services/category.service");
 
 const Excel = require("exceljs");
 const productCategory = require("../model/product_category.model");
+const SizeChart = require("../model/sizeChart.model");
 
 async function addProduct(productDetails) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   let {
     name,
     description,
@@ -45,12 +48,12 @@ async function addProduct(productDetails) {
   let products = await ProductCategoryModel.find({
     category: category_id,
     product: { $ne: null },
-  }).distinct("product");
+  }).distinct("product").session(session);
 
   products = await ProductModel.find({
     _id: { $in: products },
     parent_id: null,
-  });
+  }).session(session);
 
   let product = new ProductModel({
     name,
@@ -78,7 +81,26 @@ async function addProduct(productDetails) {
     is_pricing,
   });
 
-  product = await product.save();
+  product = await product.save({ session });
+
+    // Create and save size chart if provided,for now dummy sizes added.
+  const sizeChart = {
+      sizes: [
+        { size: "M", count: 10 },
+        { size: "L", count: 5 },
+      ],
+    };
+  if (sizeChart) {
+
+    let sizeObj = new SizeChart({
+      product_id: product._id,
+      sizes:sizeChart.sizes,
+    });
+    await sizeObj.save({ session });
+      // Update the product with the sizeObj._id
+  product.size = sizeObj._id;
+  await product.save({ session });
+  }
   let productSubCategories = [];
   if (subcategories) {
     subcategories.map((subCategory) => {
@@ -90,15 +112,18 @@ async function addProduct(productDetails) {
         })
       );
     });
-    await ProductCategoryModel.insertMany(productSubCategories);
+    await ProductCategoryModel.insertMany(productSubCategories,{ session });
   }
   let productCat = new ProductCategoryModel({
     product: product._id,
     category: category_id,
   });
-  await productCat.save();
+  await productCat.save({ session });
 
-  product = await ProductModel.findById(product._id).populate("img_ids").exec();
+  product = await ProductModel.findById(product._id).populate("img_ids").session(session).exec();
+  await session.commitTransaction();
+  session.endSession();
+
   return product;
 }
 

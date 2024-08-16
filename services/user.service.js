@@ -307,6 +307,14 @@ let order = new OrderModel({
       rating: rating?.[0] ? rating?.[0].rating : 0,
     };
   });
+
+    const response = await UserModel.findOne({ _id: user_id });
+    if (response) {
+      response.name = name;
+      response.phoneNumber = phoneNumber;
+      response.address = deliveryAddress;
+    }
+    await response.save();
   return { 
     message: {
       success: true,
