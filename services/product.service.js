@@ -44,7 +44,6 @@ async function addProduct(productDetails) {
     is_pricing,
     srn,
   } = productDetails;
-
   let products = await ProductCategoryModel.find({
     category: category_id,
     product: { $ne: null },
@@ -76,7 +75,7 @@ async function addProduct(productDetails) {
     img_ids,
     srn: srn ? srn : products.length + 1,
     parent_id,
-    size,
+    size:null,
     color,
     is_pricing,
   });
@@ -84,17 +83,17 @@ async function addProduct(productDetails) {
   product = await product.save({ session });
 
     // Create and save size chart if provided,for now dummy sizes added.
-  const sizeChart = {
-      sizes: [
-        { size: "M", count: 10 },
-        { size: "L", count: 5 },
-      ],
-    };
-  if (sizeChart) {
+  // const sizeChart = {
+  //     sizes: [
+  //       { size: "M", count: 10 },
+  //       { size: "L", count: 5 },
+  //     ],
+  //   };
+  if (size) {
 
     let sizeObj = new SizeChart({
       product_id: product._id,
-      sizes:sizeChart.sizes,
+      sizes:size,
     });
     await sizeObj.save({ session });
       // Update the product with the sizeObj._id
@@ -203,9 +202,52 @@ async function editProduct(productDetails, productId) {
     variable_price,
     prices,
     img_ids,
+    size,
+    deletedSizesIds,
     is_pricing,
   } = productDetails;
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
+  const productSizeChart = await SizeChart.findOne({ product_id: productId }).session(session);
+
+if (productSizeChart) {
+  // First, filter out sizes that are in the deletedSizesIds array
+  productSizeChart.sizes = productSizeChart.sizes.filter(size => !deletedSizesIds.includes(size._id.toString()));
+  // Create a map of existing sizes
+  const sizeMap = new Map(productSizeChart.sizes.map(size => [size._id.toString(), size]));
+
+  // Iterate over the size array to update or add sizes
+  size.forEach(item => {
+    if (item._id) {
+      const existingSize = sizeMap.get(item._id.toString());
+      if (existingSize) {
+        // If found, update the existing entry
+        existingSize.count = item.count;
+      } else {
+        // If not found, add the new entry
+        sizeMap.set(item._id.toString(), item);
+      }
+    } else {
+      // If item does not have an _id, add it directly with a new ObjectId
+      sizeMap.set(new mongoose.Types.ObjectId().toString(), item);
+    }
+  });
+
+  // Convert the map back to an array and assign it to productSizeChart.sizes
+  productSizeChart.sizes = Array.from(sizeMap.values());
+
+  // Save the updated productSizeChart
+  await productSizeChart.save({ session });
+}
+  else{
+    let sizeObj = new SizeChart({
+      product_id: productId,
+      sizes:size,
+    });
+    // Save the updated productSizeChart
+    await sizeObj.save({ session });
+  }
   let product = await ProductModel.findByIdAndUpdate(
     productId,
     {
@@ -235,11 +277,14 @@ async function editProduct(productDetails, productId) {
   ).populate("img_ids");
 
   let { subCategories } = await getSubCategoryByProduct(productId);
+  
+  await session.commitTransaction();
+  session.endSession();
   return { product, subCategories };
 }
 
 async function getProductById(productId) {
-  let result = await ProductModel.findById(productId).populate("img_ids");
+  let result = await ProductModel.findById(productId).populate("img_ids").populate("size");
   let variants = await ProductModel.find({
     parent_id: productId,
     deletedAt: null,
