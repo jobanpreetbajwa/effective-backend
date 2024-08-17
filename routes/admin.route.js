@@ -36,5 +36,5 @@ router.patch("/setting-update", AdminControllers.settingUpdate);
 //router.put("/payment-setting-update", AdminControllers.paymentSettingsUpdate);
 router.get("/profile", AdminControllers.getSettings);
 router.get("/visitors-graph/:date/:type", AdminControllers.visitorGraph);
-
+router.post("/update-order", AdminControllers.updateOrder);
 module.exports = router;

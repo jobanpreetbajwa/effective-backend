@@ -88,7 +88,7 @@ async function OrderUpdate(order_id, status) {
 
     for (const product of products) {
       const correspondingItem = updateOrder.items.find((item) =>
-        item.productId.equals(product._id)
+        item.productId._id.equals(product._id)
       );
 
       if (correspondingItem) {
@@ -239,6 +239,7 @@ async function orderPriceCalculate(orders) {
 }
 
 async function addNote(order_id, admin_note) {
+  console.log(order_id, admin_note);
   if (!order_id) {
     throw new ErrorHandler("ORDER_ID_MISSING", 400);
   }
@@ -1206,6 +1207,20 @@ async function vistiorsData(cdate, type) {
       throw new ErrorHandler("invalid_type", 400);
   }
 }
+
+async function UpdateOrdersStatus(orderIds, status,msg) {
+  const respone = await OrderModel.updateMany(
+    { orderId: { $in: orderIds } },
+    { $set: { status } },
+    { $set:{ admin_note:msg } }
+  );
+  if (response.nModified === orderIds.length) {
+    return 'All orders updated successfully';
+  } else {
+    return 'Some orders were not updated';
+  }
+}
+
 module.exports = {
   addAdmin,
   verifyAdmin,
@@ -1229,4 +1244,5 @@ module.exports = {
   //paymentSettingUpdate,
   getSetting,
   vistiorsData,
+  UpdateOrdersStatus,
 };

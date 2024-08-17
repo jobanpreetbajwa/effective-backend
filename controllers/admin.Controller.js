@@ -180,6 +180,7 @@ class AdminControllers {
 
       return res.status(200).json(order);
     } catch (err) {
+      console.log(err);
       return res.status(err.status || 500).json({ message: err.message });
     }
   }
@@ -336,6 +337,16 @@ class AdminControllers {
       return res.status(err.status || 500).json({ message: err.message });
     }
   }
-}
 
+  async updateOrder(req, res) {
+    try {
+      const { order_ids ,status,msg} = req.body;
+      const order = await UpdateOrdersStatus(order_ids, status,msg);
+      return res.status(200).json(order);
+    }
+    catch(err){
+      return res.status(err.status || 500).json({ message: err.message });
+    }
+}
+}
 module.exports = new AdminControllers();
