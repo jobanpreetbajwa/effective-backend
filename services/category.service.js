@@ -187,7 +187,7 @@ async function getProductsLimitByCategory(category_id, limit, page) {
     _id: { $in: parentProducts },
     parent_id: null,
   })
-    .populate("img_ids")
+    .populate("img_ids").populate('size')
     .sort({ srn: 1 });
 
   let allVariants = await ProductModel.find({

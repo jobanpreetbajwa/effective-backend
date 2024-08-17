@@ -250,11 +250,13 @@ class UserController {
       const cartItems = req.body.cartItems;
       const items = cartItems.map(item => ({
           productId: item.product_id,
-          quantity: item.quantity
+          quantity: item.quantity,
+          ...(item?.size && { size: item.size._id })
       }));
       const date = new Date();
       const paymentMode = 1;
     
+
       const place_order = await placeOrder(
         user_id,
         date,

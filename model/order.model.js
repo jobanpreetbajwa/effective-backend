@@ -25,6 +25,10 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
         },
         quantity: Number,
+        size:{
+          type: mongoose.Schema.Types.ObjectId,
+          ref:"SizeChart"
+        },
         price: Number,
       },
     ],

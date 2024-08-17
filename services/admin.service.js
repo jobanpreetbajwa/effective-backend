@@ -10,6 +10,7 @@ const SettingModel = require("../model/settings.model");
 const axios = require("axios");
 const VisitorsModel = require("../model/vistiorsAnalytics.model");
 const ViewModel = require("../model/viewsAnalytics.model");
+const SizeChart = require("../model/sizeChart.model")
 //const PaymentSettingModel = require("../model/payment_setting.model");
 
 const jwt = require("jsonwebtoken");
@@ -133,6 +134,17 @@ async function getOrderById(order_id) {
   //   );
   // });
 
+order.items = await Promise.all(order.items.map(async (item) => {
+  const productSizeChart = await SizeChart.findOne({ product_id: item.productId._id }).lean();
+  if (productSizeChart) {
+    const sizeObject = productSizeChart.sizes.find(size => size._id.equals(item.size));
+    if (sizeObject) {
+      item.size = sizeObject;
+    }
+  }
+  return item;
+}));
+console.log(order,"order")
   const categories = await ProductCategoryModel.find(
     {
       product: {

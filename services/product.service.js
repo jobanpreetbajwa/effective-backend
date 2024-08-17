@@ -210,6 +210,8 @@ async function editProduct(productDetails, productId) {
   session.startTransaction();
 
   const productSizeChart = await SizeChart.findOne({ product_id: productId }).session(session);
+  
+  let sizeObj;
 
 if (productSizeChart) {
   // First, filter out sizes that are in the deletedSizesIds array
@@ -241,7 +243,7 @@ if (productSizeChart) {
   await productSizeChart.save({ session });
 }
   else{
-    let sizeObj = new SizeChart({
+    sizeObj = new SizeChart({
       product_id: productId,
       sizes:size,
     });
@@ -268,11 +270,13 @@ if (productSizeChart) {
       variants,
       variable_price,
       prices,
+      size: sizeObj._id,
       img_ids,
       is_pricing,
     },
     {
       new: true,
+      session: session,
     }
   ).populate("img_ids");
 
