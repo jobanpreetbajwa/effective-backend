@@ -1,0 +1,41 @@
+service: effective-backend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    MONGO_URI: ${env:MONGO_URI}
+    PORT: ${env:PORT}
+    JWT_SECRET: ${env:JWT_SECRET}
+    CLOUDINARY_CLOUD_NAME: ${env:CLOUDINARY_CLOUD_NAME}
+    CLOUDINARY_API_KEY: ${env:CLOUDINARY_API_KEY}
+    CLOUDINARY_API_SECRET: ${env:CLOUDINARY_API_SECRET}
+
+functions:
+  server: 
+    handler: index.handler 
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+
+    # vpc:
+    #   securityGroupIds:
+    #     - sg-07f56ae4b37d098ed # Replace with your security group ID
+    #   subnetIds:
+    #     - subnet-0bafcc293ea014b2b # Replace with your subnet ID
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
