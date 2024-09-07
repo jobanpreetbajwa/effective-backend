@@ -83,6 +83,14 @@ const productSchema = new Schema({
       },
     ],
   },
+  offers:{
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offer",
+      },
+    ],
+  },
   deletedAt: {
     type: Date,
     default: null,

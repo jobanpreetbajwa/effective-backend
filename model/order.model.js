@@ -61,6 +61,9 @@ const orderSchema = new mongoose.Schema(
     admin_note: {
       type: String,
     },
+    subTotal: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

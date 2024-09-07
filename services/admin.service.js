@@ -1003,13 +1003,22 @@ async function product_status_orderd(limit, page, sort_bit) {
 }
 
 async function settingsUpdate(update) {
-  const settings = await SettingModel.findOneAndUpdate(
-    {},
-    { $set: update },
-    { new: true }
-  ).populate("img_ids");
-  return settings;
+  try {
+    console.log(update);
+    const settings = await SettingModel.findOneAndUpdate(
+      {},
+      { $set: update },
+      { new: true, upsert: true } // upsert: true ensures a document is created if none exists
+    ).populate("img_ids");
+
+    console.log(settings, 'settings');
+    return settings;
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    throw new ErrorHandler(500, 'Internal server error');
+  }
 }
+  
 
 async function getSetting() {
   const profile = await SettingModel.findOne().populate("img_ids");

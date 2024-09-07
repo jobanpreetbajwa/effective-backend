@@ -253,7 +253,8 @@ async function placeOrder(
   phoneNumber,
   city,
   state,
-  pin
+  pin,
+  subTotal
 ) {
   if (!user_id || !date || !items || !deliveryAddress || !phoneNumber) {
     throw new ErrorHandler("CREDINTIALS_MISSING", 400);
@@ -272,6 +273,7 @@ let order = new OrderModel({
     pin,
     user_note,
     paymentMode,
+    subTotal,
   });
   await order.save();
 

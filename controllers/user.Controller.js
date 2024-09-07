@@ -248,9 +248,11 @@ class UserController {
         pin,
       } = req.body.orderDetails;
       const cartItems = req.body.cartItems;
+      const subTotal = req.body.subTotal;
       const items = cartItems.map(item => ({
           productId: item.product_id,
           quantity: item.quantity,
+          price: item.price,
           ...(item?.size && { size: item.size._id })
       }));
       const date = new Date();
@@ -268,7 +270,8 @@ class UserController {
         phoneNumber,
         city,
         state,
-        pin
+        pin,
+        subTotal,
       );
       return res.status(200).json(place_order);
     } catch (err) {
