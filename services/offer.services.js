@@ -1,6 +1,7 @@
 
 const Offer = require('../model/offers.model');
 const Product = require('../model/product.model');
+const Coupon = require('../model/coupon.model');
 async function getOffers() {
     return Offer.find();
 }
@@ -32,9 +33,24 @@ async function bindProducts(offerId, productIds) {
 
     return offer.save();
 }
+
+async function createCoupon({ coupon_code, discount_value, discount_upto,count }) {
+    return Coupon.create({ coupon_code, discount_value, discount_upto ,count});
+}
+
+async function applyCoupon(coupon_code) {
+    const coupon = await
+        Coupon.findOne({ coupon_code });
+    if (!coupon) {
+        throw new Error('Coupon not found');
+    }
+    return coupon;
+}
+
 module.exports = {
     getOffers,
     createOffer,
     deleteOffer,
-    bindProducts
+    bindProducts,
+    createCoupon,
 }

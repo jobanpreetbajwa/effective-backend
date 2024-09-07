@@ -288,7 +288,7 @@ if (productSizeChart) {
 }
 
 async function getProductById(productId) {
-  let result = await ProductModel.findById(productId).populate("img_ids").populate("size");
+  let result = await ProductModel.findById(productId).populate("img_ids").populate("size") .populate("offers");
   let variants = await ProductModel.find({
     parent_id: productId,
     deletedAt: null,

@@ -200,9 +200,14 @@ async function getThemePreviews() {
     })
     .populate({
       path: "product_ids",
-      populate: {
-        path: "img_ids",
-      },
+      populate: [
+        {
+          path: "img_ids",
+        },
+        {
+          path: "offers",
+        },
+      ],
     })
     .populate({
       path: "category_ids",

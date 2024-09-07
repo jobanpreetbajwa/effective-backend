@@ -1,6 +1,8 @@
 const createOffer = require("../services/offer.services").createOffer;
 const getOffers = require("../services/offer.services").getOffers;
 const bindProducts = require("../services/offer.services").bindProducts;
+const createCoupon = require("../services/offer.services").createCoupon;
+const applyCoupon = require("../services/offer.services").applyCoupon;
 class OfferController {
   async getOffers(req, res) {
     try{
@@ -52,6 +54,25 @@ class OfferController {
   });
   }
 }
+  async createCoupon(req, res) {
+    try{
+    const {coupon_code, discount_value, discount_upto,count} = req.body;
+    const coupon = await createCoupon({coupon_code, discount_value, discount_upto,count});
+    res.json({message: "Coupon created successfully",success:true,coupon});
+
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({message: "Internal server error",success:false});
+    }
+  }
+
+  async applyCoupon(req, res) {
+    const {coupon_code} = req.body;
+    const coupon = await applyCoupon(coupon_code);
+    res.json(coupon);
+  }
+
 }
 
 module.exports =new OfferController();
