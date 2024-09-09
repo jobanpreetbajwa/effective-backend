@@ -34,8 +34,22 @@ async function bindProducts(offerId, productIds) {
     return offer.save();
 }
 
-async function createCoupon({ coupon_code, discount_value, discount_upto,count }) {
-    return Coupon.create({ coupon_code, discount_value, discount_upto ,count});
+async function createCoupon({ coupon_code, discount_value, discount_upto, discount_percentage, count, minimum_order_value,discount_type}) {
+    const couponData = {
+        coupon_code,
+        discount_upto,
+        count,
+        minimum_order_value,
+        discount_type
+    };
+
+    if (discount_value) {
+        couponData.discount_value = discount_value;
+    } else if (discount_percentage) {
+        couponData.discount_percentage = discount_percentage;
+    }
+
+    return Coupon.create(couponData);
 }
 
 async function applyCoupon(coupon_code) {
@@ -53,4 +67,5 @@ module.exports = {
     deleteOffer,
     bindProducts,
     createCoupon,
+    applyCoupon
 }

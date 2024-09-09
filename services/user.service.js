@@ -10,6 +10,8 @@ const generateOrderId = require("../utils/generateToken");
 const OrderModel = require("../model/order.model");
 const RatingModel = require("../model/rating.model");
 const ThemePreviewModel = require("../model/theme_preview.model");
+const Coupon = require("../model/coupon.model");
+const Offers = require("../model/offers.model");
 const axios = require("axios");
 const moment = require("moment");
 
@@ -254,12 +256,58 @@ async function placeOrder(
   city,
   state,
   pin,
-  subTotal
+  subTotal,
+  appliedCoupon
 ) {
   if (!user_id || !date || !items || !deliveryAddress || !phoneNumber) {
     throw new ErrorHandler("CREDINTIALS_MISSING", 400);
   }
-  const order_id = await generateOrderId.generateOrderId();
+
+  let total = subTotal;
+  // Adjust total based on offers
+  for (const item of items) {
+    if (item.offers && item.offers.length > 0) {
+      const offer = item.offers[0];
+      if (offer.type === 'percentage') {
+        const offerDetails = await Offers.findById(offer._id);
+        if (offerDetails) {
+          const discount = (item.price * offerDetails.discountPercent) / 100;
+          const finalDiscount = Math.min(discount, offerDetails.discountUpto);
+          if (total >= offerDetails.minOrderValue) {
+            total -= finalDiscount;
+          }
+        }
+      }
+    }
+  }
+
+
+  // Check if the applied coupon is valid
+  if (appliedCoupon) {
+    const coupon = await Coupon.findById(appliedCoupon);
+    if (!coupon) {
+      throw new ErrorHandler("INVALID_COUPON", 400);
+    }
+    if (!coupon.is_active) {
+      throw new ErrorHandler("COUPON_INACTIVE", 400);
+    }
+    if (new Date(coupon.expiry_date) < new Date()) {
+      throw new ErrorHandler("COUPON_EXPIRED", 400);
+    }
+    // Adjust total based on coupon
+    if (total >= coupon.minimum_order_value) {
+      let couponDiscount = 0;
+      if (coupon.discount_type === 'percentage') {
+        couponDiscount = (total * coupon.discount_percentage) / 100;
+      } else if (coupon.discount_type === 'value') {
+        couponDiscount = coupon.discount_value;
+      }
+      const finalCouponDiscount = Math.min(couponDiscount, coupon.discount_upto);
+      total -= finalCouponDiscount;
+      }
+  }
+
+const order_id = await generateOrderId.generateOrderId();
 let order = new OrderModel({
     orderId: order_id,
     customerId: user_id,
@@ -273,7 +321,8 @@ let order = new OrderModel({
     pin,
     user_note,
     paymentMode,
-    subTotal,
+    subTotal:total,
+    ...(appliedCoupon && { appliedCoupon }), // Add appliedCoupon only if it is not null
   });
   await order.save();
 

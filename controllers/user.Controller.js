@@ -26,6 +26,7 @@ const csvtojson = require("csvtojson");
 const moment = require("moment");
 const fs = require("fs");
 
+
 class UserController {
   /**
    * Controller function to add a new category.
@@ -249,6 +250,7 @@ class UserController {
       } = req.body.orderDetails;
       const cartItems = req.body.cartItems;
       const subTotal = req.body.subTotal;
+      const appliedCoupon = req.body.coupon
       const items = cartItems.map(item => ({
           productId: item.product_id,
           quantity: item.quantity,
@@ -272,6 +274,7 @@ class UserController {
         state,
         pin,
         subTotal,
+        appliedCoupon
       );
       return res.status(200).json(place_order);
     } catch (err) {

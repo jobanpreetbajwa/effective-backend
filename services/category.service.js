@@ -179,21 +179,29 @@ async function getProductsByCategory(category_id) {
 }
 
 async function getProductsLimitByCategory(category_id, limit, page) {
+  // Fetch parent products based on category_id
   let parentProducts = await ProductCategoryModel.find({
     category: category_id,
   }).distinct("product");
 
+  // Fetch parent products details and populate necessary fields
   parentProducts = await ProductModel.find({
     _id: { $in: parentProducts },
     parent_id: null,
   })
-    .populate("img_ids").populate('size')
+    .populate("img_ids")
+    .populate("size")
+    .populate("offers")
     .sort({ srn: 1 });
 
+  // Fetch all variants of the parent products
   let allVariants = await ProductModel.find({
     parent_id: { $in: parentProducts.map((p) => p._id) },
-  }).populate("img_ids");
+  })
+    .populate("img_ids")
+    .populate("offers");
 
+  // Combine parent products with their variants
   const productsWithSubproducts = parentProducts.map((parentProduct) => {
     const subproducts = allVariants.filter(
       (variant) => variant.parent_id.toString() === parentProduct._id.toString()
@@ -202,8 +210,10 @@ async function getProductsLimitByCategory(category_id, limit, page) {
     return { ...parent, variants: subproducts };
   });
 
+  // Sort products by srn
   productsWithSubproducts.sort((a, b) => a.srn - b.srn);
 
+  // Apply pagination if limit and page are provided
   if (limit && page) {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;

@@ -64,6 +64,10 @@ const orderSchema = new mongoose.Schema(
     subTotal: {
       type: Number,
     },
+    appliedCoupon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Coupon",
+    },
   },
   {
     timestamps: true,

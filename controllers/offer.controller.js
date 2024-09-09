@@ -56,8 +56,8 @@ class OfferController {
 }
   async createCoupon(req, res) {
     try{
-    const {coupon_code, discount_value, discount_upto,count} = req.body;
-    const coupon = await createCoupon({coupon_code, discount_value, discount_upto,count});
+    const {coupon_code, discount_value, discount_upto,discount_percentage,count,minimum_order_value,discount_type} = req.body;
+    const coupon = await createCoupon({coupon_code, discount_value, discount_upto, discount_percentage,count,minimum_order_value,discount_type});
     res.json({message: "Coupon created successfully",success:true,coupon});
 
     }
@@ -68,9 +68,13 @@ class OfferController {
   }
 
   async applyCoupon(req, res) {
-    const {coupon_code} = req.body;
-    const coupon = await applyCoupon(coupon_code);
-    res.json(coupon);
+    const { coupon_code } = req.params;
+    try {
+      const coupon = await applyCoupon(coupon_code);
+      res.json(coupon);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
 
 }

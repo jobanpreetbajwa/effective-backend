@@ -6,5 +6,5 @@ router.post('/create',offerController.createOffer);
 router.post('/bind-products/:offerId',offerController.bindProducts);
 router.delete('/delete/:id',offerController.deleteOffer);
 router.post('/create-coupon',offerController.createCoupon);
-router.post('/apply-coupon',offerController.applyCoupon);
+router.get('/apply-coupon/:coupon_code',offerController.applyCoupon);
 module.exports = router;
