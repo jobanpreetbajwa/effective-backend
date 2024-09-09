@@ -104,6 +104,7 @@ class CategoryController {
       const { subcategory } = req.body;
 
       let products = await getProductsLimitByCategory(category_id, limit, page);
+      console.log(JSON.stringify(products, null, 2), "products"); // Ensure proper logging
       let subcategories = await getSubCategoryByCategory(category_id);
       let subcategoryProducts;
       if (subcategory?.length) {

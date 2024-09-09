@@ -205,7 +205,10 @@ async function getThemePreviews() {
           path: "img_ids",
         },
         {
-          path: "offers",
+          path: "offers", // Populate the offer field
+        },
+        {
+          path: "size", // Populate the size field
         },
       ],
     })

@@ -159,11 +159,11 @@ async function getProductsByCategory(category_id) {
   parentProducts = await ProductModel.find({
     _id: { $in: parentProducts },
     parent_id: null,
-  }).populate("img_ids");
+  }).populate("img_ids").populate("offers");
 
   let allVariants = await ProductModel.find({
     parent_id: { $in: parentProducts.map((p) => p._id) },
-  }).populate("img_ids");
+  }).populate("img_ids").populate("offers");
 
   const productsWithSubproducts = parentProducts.map((parentProduct) => {
     const subproducts = allVariants.filter(
@@ -199,6 +199,7 @@ async function getProductsLimitByCategory(category_id, limit, page) {
     parent_id: { $in: parentProducts.map((p) => p._id) },
   })
     .populate("img_ids")
+    .populate("size") 
     .populate("offers");
 
   // Combine parent products with their variants
@@ -355,6 +356,8 @@ async function filter_products_by_subcategories(
     deletedAt: null,
   })
     .populate("img_ids")
+    .populate("size")
+    .populate("offers")
     .sort({ srn: 1 })
     .skip(skip)
     .limit(+limit)
