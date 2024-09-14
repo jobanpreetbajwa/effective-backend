@@ -28,7 +28,7 @@ async function bindProducts(offerId, productIds) {
     // Add offerId to each product's offers array
     await Product.updateMany(
         { _id: { $in: productIds } },
-        { $push: { offers: { $each: [offerId], $position: 0 } } }
+        { $push: { offers: offerId } }
     );
 
     return offer.save();

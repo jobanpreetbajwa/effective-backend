@@ -1,18 +1,63 @@
 const mongoose = require('mongoose');
 
+const offerTypePriority = {
+  flash: 1,
+  seasonal: 2,
+  loyalty: 3,
+  buyX_getY: 4,
+  free_shipping: 5,
+  percentage: 6,
+  fixed: 7,
+};
+
 const offerSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['percentage', 'fixed', 'bogo', 'free_shipping', 'bundle', 'seasonal', 'loyalty', 'flash'],
+    enum: ['percentage', 'fixed', 'free_shipping', 'buyX_getY', 'seasonal', 'loyalty', 'flash'],
     required: true
   },
-  description: String,
-  discountPercent: Number, // For percentage and fixed amount discounts
-  discountUpto:Number, // For percentage and fixed amount discounts
-  minOrderValue: Number, // Minimum order value to apply the offer
-  // applicableProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }], // For specific product offers
-  startDate: Date,
-  endDate: Date,
+  description: {
+    type: String,
+    required: true
+  },
+  requiredQuantity: {
+    type: Number,
+    required: function() {
+      return this.type === 'buyX_getY';
+    }
+  },
+  freeQuantity: {
+    type: Number,
+    required: function() {
+      return this.type === 'buyX_getY';
+    }
+  },
+  discountPercent: {
+    type: Number,
+    required: function() {
+      return ['percentage', 'fixed', 'seasonal', 'loyalty', 'flash'].includes(this.type);
+    }
+  },
+  discountUpto: {
+    type: Number,
+    required: function() {
+      return ['percentage', 'fixed', 'seasonal', 'loyalty', 'flash'].includes(this.type);
+    }
+  },
+  minOrderValue: {
+    type: Number,
+    required: function() {
+      return ['percentage', 'fixed', 'seasonal', 'loyalty', 'flash'].includes(this.type);
+    }
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -20,7 +65,20 @@ const offerSchema = new mongoose.Schema({
   timeStamp: {
     type: Date,
     default: Date.now
+  },
+  priority: {
+    type: Number,
+    default: function() {
+      return offerTypePriority[this.type];
+    }
   }
+});
+
+offerSchema.pre('save', function(next) {
+  if (!this.priority) {
+    this.priority = offerTypePriority[this.type];
+  }
+  next();
 });
 
 const Offer = mongoose.model('Offer', offerSchema);
